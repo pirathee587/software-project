@@ -31,16 +31,24 @@ public class PackageController {
         return ResponseEntity.ok(packageService.getTrendingPackages());
     }
 
+    // ── Chatbot endpoint ───────────────────────────────────────────────────
+    // GET /api/packages/chatbot-data
+    // Called by Python AI service on startup and every 5 min to sync ChromaDB
+    @GetMapping("/chatbot-data")
+    public ResponseEntity<List<Map<String, Object>>> getPackagesForChatbot() {
+        return ResponseEntity.ok(packageService.getAllPackagesForChatbot());
+    }
+
+    // GET /api/packages/chatbot-search?keyword=Matale
+    // Called by Python AI service for real-time, exact package lookups
+    @GetMapping("/chatbot-search")
+    public ResponseEntity<List<Map<String, Object>>> searchPackagesForChatbot(
+            @RequestParam String keyword) {
+        return ResponseEntity.ok(packageService.searchPackagesForChatbot(keyword));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<PackageDetailResponse> getPackageById(@PathVariable Long id) {
         return ResponseEntity.ok(packageService.getPackageById(id));
-    }
-
-    // ── Chatbot endpoint ───────────────────────────────────────────────────
-    // GET /api/packages/chatbot-data
-    // Called by Python AI service on startup and every 30 min to sync ChromaDB
-    @GetMapping("/chatbot-data")
-    public ResponseEntity<List<Map<String, Object>>> getPackagesForChatbot() {
-    return ResponseEntity.ok(packageService.getAllPackagesForChatbot());
     }
 }

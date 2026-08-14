@@ -42,6 +42,16 @@ public interface PackageRepository extends JpaRepository<Package, Long> {
     List<Package> searchByAgentId(@Param("agentId") Long agentId,
                                   @Param("search") String search);
 
+    // ── Chatbot global search ─────────────────────────────────────────────
+    // Searches all active packages across all agents by keyword
+    @Query("SELECT p FROM Package p WHERE p.isActive = true " +
+            "AND p.deletedAt IS NULL " +
+            "AND (LOWER(p.packageName) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "OR LOWER(p.district) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "OR LOWER(p.endPlace) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "OR LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    List<Package> searchActivePackagesByKeyword(@Param("keyword") String keyword);
+
     /**
      * Finds packages by the value stored in packages.agent_id column
      * (which equals agents.user_id due to the @JoinColumn referencedColumnName).

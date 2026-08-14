@@ -284,5 +284,40 @@ public class PackageService {
                 return map;
             })
             .collect(Collectors.toList());
-}
+    }
+
+    // ── Chatbot search method ──────────────────────────────────────────────
+    // Searches active packages by keyword (district, name, destination, description)
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> searchPackagesForChatbot(String keyword) {
+        return packageRepository.searchActivePackagesByKeyword(keyword)
+                .stream()
+                .map(pkg -> {
+                    Map<String, Object> map = new java.util.HashMap<>();
+                    map.put("id",              pkg.getId());
+                    map.put("packageId",       pkg.getPackageId());
+                    map.put("packageName",     pkg.getPackageName());
+                    map.put("destination",     pkg.getDestination());
+                    map.put("district",        pkg.getDistrict());
+                    map.put("category",        pkg.getCategory());
+                    map.put("priceFrom",       pkg.getPriceFrom());
+                    map.put("priceTo",         pkg.getPriceTo());
+                    map.put("basePriceAdult",  pkg.getBasePriceAdult());
+                    map.put("basePriceChild",  pkg.getBasePriceChild());
+                    map.put("duration",        pkg.getDuration());
+                    map.put("description",     pkg.getDescription());
+                    map.put("inclusions",      pkg.getInclusions());
+                    map.put("startPlace",      pkg.getStartPlace());
+                    map.put("endPlace",        pkg.getEndPlace());
+                    map.put("rating",          pkg.getRating());
+                    map.put("trending",        pkg.getTrending());
+                    try {
+                        map.put("agentName", pkg.getAgent() != null ? pkg.getAgent().getAgencyName() : "");
+                    } catch (Exception e) {
+                        map.put("agentName", "");
+                    }
+                    return map;
+                })
+                .collect(Collectors.toList());
+    }
 }
