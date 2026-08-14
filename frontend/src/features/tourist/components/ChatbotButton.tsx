@@ -10,7 +10,7 @@ import {
 } from "@/components/common/ui/dialog";
 import { cn } from "@/features/tourist/services/utils";
 
-const CHATBOT_API_URL = "http://localhost:8001/chat";
+const CHATBOT_API_URL = "http://localhost:8080/api/chatbot/message";
 
 const WELCOME_MESSAGE = {
     role: "bot",
@@ -40,9 +40,13 @@ export function ChatbotButton() {
         setIsLoading(true);
 
         try {
+            const token = localStorage.getItem("token");
             const res = await fetch(CHATBOT_API_URL, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { 
+                    "Content-Type": "application/json",
+                    ...(token && { "Authorization": `Bearer ${token}` })
+                },
                 body: JSON.stringify({ prompt: trimmed }),
             });
 
