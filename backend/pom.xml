@@ -25,6 +25,12 @@
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
+		<!-- Actuator: /actuator/health for Docker healthcheck & CI/CD -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+
 		<!-- Dotenv: auto-load .env file into Spring environment -->
 		<dependency>
 			<groupId>me.paulschwarz</groupId>

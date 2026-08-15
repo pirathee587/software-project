@@ -1,0 +1,91 @@
+version: "3.9"
+
+services:
+  # ──────────────────────────────────────────────
+  # Spring Boot Backend — connects to Supabase Cloud
+  # ──────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: travelhub-backend
+    ports:
+      - "8080:8080"
+    environment:
+      # DB — mapped from root .env → Supabase Cloud (no local DB container)
+      DB_URL: ${DB_URL}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      # Supabase Storage
+      SUPABASE_KEY: ${SUPABASE_KEY}
+      # Mail
+      GMAIL_APP_PASSWORD: ${GMAIL_APP_PASSWORD}
+      # PayHere
+      PAYHERE_SECRET: ${PAYHERE_SECRET}
+      PAYHERE_CURRENCY: ${PAYHERE_CURRENCY:-USD}
+      # Chatbot internal Docker network URL
+      CHATBOT_SERVICE_URL: http://chatbot-service:8001
+    env_file:
+      - .env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  # ──────────────────────────────────────────────
+  # Python Chatbot Service — talks to backend API
+  # ──────────────────────────────────────────────
+  chatbot-service:
+    build:
+      context: ./chatbot-service
+      dockerfile: Dockerfile
+    container_name: travelhub-chatbot
+    ports:
+      - "8001:8001"
+    environment:
+      # Spring Boot URL inside Docker network
+      SPRING_BOOT_URL: http://backend:8080
+      GROQ_API_KEY: ${GROQ_API_KEY}
+    env_file:
+      - .env
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  # ──────────────────────────────────────────────
+  # React Frontend — Vite build served by Nginx
+  # ──────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: travelhub-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+      - chatbot-service
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 128M
+
+# ──────────────────────────────────────────────
+# No pgdata volume — DB is Supabase Cloud ✅
+# ──────────────────────────────────────────────
